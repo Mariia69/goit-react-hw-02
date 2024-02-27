@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+import Options from './Options/Options';
+import Feedback from './Feedback/Feedback';
+import Description from './Description/Description';
+import Notification from './Notification/Notification';
+import { useState, useEffect } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [feedbackCount, setFeedbackCount] = useState({
+    good: 0,
+    neutral: 0,
+    bad: 0,
+  });
+
+  useEffect(() => {
+    const savedFeedback = localStorage.getItem('feedbackCount');
+    if (savedFeedback !== null) {
+      return setFeedbackCount(JSON.parse(savedFeedback));
+    }
+    return 0;
+  }, []);
+
+  //ф-ція для збереження фідбеків у локал стор
+  useEffect(() => {
+    localStorage.setItem('feedbackCount', JSON.stringify(feedbackCount));
+  }, [feedbackCount]);
+
+  // ф-ція оновлення стану
+  const updateFeedback = feedbackType => {
+    setFeedbackCount(prevFeedback => ({
+      ...prevFeedback,
+      [feedbackType]: prevFeedback[feedbackType] + 1,
+    }));
+  };
+
+  //ф-ція для підрахунку загальної кількості відгуків
+  const totalFeedback =
+    feedbackCount.good + feedbackCount.neutral + feedbackCount.bad;
+
+  //ф-ція для підрахунку відсотка позитивних відгуків
+  const positiveFeedback = Math.round(
+    (feedbackCount.good / totalFeedback) * 100
+  );
+  // ф-ція скидання зібраних відгуків
+  const resetFeedback = () => {
+    setFeedbackCount({
+      good: 0,
+      neutral: 0,
+      bad: 0,
+    });
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Description />
 
-export default App
+      <Options
+        updateFeedback={updateFeedback}
+        resetFeedback={resetFeedback}
+        totalFeedback={totalFeedback}
+      />
+      {totalFeedback ? (
+        <Feedback
+          feedback={feedbackCount}
+          totalFeedback={totalFeedback}
+          positiveFeedback={positiveFeedback}
+        />
+      ) : (
+        <Notification />
+      )}
+    </>
+  );
+}
