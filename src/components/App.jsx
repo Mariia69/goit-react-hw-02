@@ -1,66 +1,73 @@
+import { useEffect, useState } from 'react';
 import './App.css';
-import Options from './Options/Options';
-import Feedback from './Feedback/Feedback';
-import Description from './Description/Description';
-import Notification from './Notification/Notification';
-import { useState, useEffect } from 'react';
 
-const App = () => {
-	const initialState = JSON.parse(localStorage.getItem('feedbackTypes')) || {
+import Description from './Description/Description';
+import Feedback from './Feedback/Feedback';
+import Notification from './Notification/Notification';
+import Options from './Options/Options';
+
+export default function App() {
+	const [feedbackCount, setFeedbackCount] = useState({
+ good: 0,
+ neutral: 0,
+ bad: 0,
+	});
+  
+	useEffect(() => {
+const savedFeedback = localStorage.getItem('feedbackCount');
+ if (savedFeedback !== null) {
+		return setFeedbackCount(JSON.parse(savedFeedback));
+}
+ return 0;
+	}, []);
+  
+	//ф-ція для збереження фідбеків у локал стор
+	useEffect(() => {
+ localStorage.setItem('feedbackCount', JSON.stringify(feedbackCount));
+	}, [feedbackCount]);
+  
+	// ф-ція оновлення стану
+	const updateFeedback = feedbackType => {
+ setFeedbackCount(prevFeedback => ({
+		...prevFeedback,
+		[feedbackType]: prevFeedback[feedbackType] + 1,
+}));
+	};
+  
+	//ф-ція для підрахунку загальної кількості відгуків
+	const totalFeedback =
+ feedbackCount.good + feedbackCount.neutral + feedbackCount.bad;
+  
+	//ф-ція для підрахунку відсотка позитивних відгуків
+	const positiveFeedback = Math.round(
+ (feedbackCount.good / totalFeedback) * 100
+	);
+	// ф-ція скидання зібраних відгуків
+	const resetFeedback = () => {
+ setFeedbackCount({
 		good: 0,
 		neutral: 0,
 		bad: 0,
-	}
-
-	const [feedbackTypes, setFeedbackTypes] = useState(initialState)
-
-	useEffect(() => {
-		localStorage.setItem('feedbackTypes', JSON.stringify(feedbackTypes))
-	}, [feedbackTypes])
-
-	const handleReset = () => {
-		localStorage.removeItem('feedbackTypes')
-		window.location.reload()
-	}
-
-	const updateFeedback = feedbackType => {
-		setFeedbackTypes(prevFeedback => ({
-			...prevFeedback,
-			[feedbackType]: prevFeedback[feedbackType] + 1,
-		}))
-	}
-
-	const totalFeedback =
-		feedbackTypes.good + feedbackTypes.neutral + feedbackTypes.bad
-
-	const positivePercentage =
-		totalFeedback > 0
-			? Math.round(
-					((feedbackTypes.good + feedbackTypes.neutral) / totalFeedback) * 100 )
-			: 0
-
+ });
+	};
+  
 	return (
-		<>
-			<Description
-				title='Sip Happens Café'
-				content='Please leave your feedback about our service by selecting one of the
-				options below.'
-			/>
-			<Options
-				onLeaveFeedback={updateFeedback}
-				totalFeedback={totalFeedback}
-				handleReset={handleReset}
-			/>
-			<Notification message='No feedback yet' />
-			{totalFeedback > 0 ? (
-				<Feedback
-					feedbackTypes={feedbackTypes}
-					totalFeedback={totalFeedback}
-					positivePercentage={positivePercentage}
-				/>
-			) : null}
-		</>
-	)
-}
-
-export default App
+ <>
+		<Description />
+  
+		<Options
+ updateFeedback={updateFeedback}
+ resetFeedback={resetFeedback}
+	totalFeedback={totalFeedback}
+		/>
+		{totalFeedback ? (
+ <Feedback
+			feedback={feedbackCount}
+			totalFeedback={totalFeedback}
+			positiveFeedback={positiveFeedback}
+ />
+		) : ( <Notification />
+		)}
+	</>
+	);
+  }
