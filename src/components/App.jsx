@@ -22,7 +22,7 @@ const savedFeedback = localStorage.getItem('feedbackCount');
 	}, []);
   
 	//ф-ція для збереження фідбеків у локал стор
-	useEffect(() => {
+	useState(() => {
  localStorage.setItem('feedbackCount', JSON.stringify(feedbackCount));
 	}, [feedbackCount]);
   
