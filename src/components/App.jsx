@@ -1,73 +1,59 @@
-import { useEffect, useState } from 'react';
 import './App.css';
 
-import Description from './Description/Description';
-import Feedback from './Feedback/Feedback';
-import Notification from './Notification/Notification';
-import Options from './Options/Options';
+import Description from "./components/Description/Description";
+import Options from "./components/Options/Options";
+import Feedback from "./components/Feedback/Feedback";
+import Notification from "./components/Notification/Notification";
+import { useEffect, useState } from "react";
 
-export default function App() {
-	const [feedbackCount, setFeedbackCount] = useState({
- good: 0,
- neutral: 0,
- bad: 0,
-	});
+
+function App() {
+
+  const [values, setValues] = useState(() => {    
+    
+    const savedFeedback = JSON.parse(localStorage.getItem("feedback"))
+
+    if (savedFeedback !== null) {
+      return savedFeedback
+    }
+
+    return{
+      good: 0,
+      neutral: 0,
+      bad:0
+    }
+
+  });
   
-	useEffect(() => {
-const savedFeedback = localStorage.getItem('feedbackCount');
- if (savedFeedback !== null) {
-		return setFeedbackCount(JSON.parse(savedFeedback));
-}
- return 0;
-	}, []);
+  const onLeaveFeedback = (option) => {
+    setValues({
+      ...values,
+      [option]: values[option] + 1
+    });
+  };
+
+  useEffect(() => {
+    localStorage.setItem("feedback", JSON.stringify(values))
+  }, [values])
   
-	//ф-ція для збереження фідбеків у локал стор
-	useState(() => {
- localStorage.setItem('feedbackCount', JSON.stringify(feedbackCount));
-	}, [feedbackCount]);
-  
-	// ф-ція оновлення стану
-	const updateFeedback = feedbackType => {
- setFeedbackCount(prevFeedback => ({
-		...prevFeedback,
-		[feedbackType]: prevFeedback[feedbackType] + 1,
-}));
-	};
-  
-	//ф-ція для підрахунку загальної кількості відгуків
-	const totalFeedback =
- feedbackCount.good + feedbackCount.neutral + feedbackCount.bad;
-  
-	//ф-ція для підрахунку відсотка позитивних відгуків
-	const positiveFeedback = Math.round(
- (feedbackCount.good / totalFeedback) * 100
-	);
-	// ф-ція скидання зібраних відгуків
-	const resetFeedback = () => {
- setFeedbackCount({
-		good: 0,
-		neutral: 0,
-		bad: 0,
- });
-	};
-  
-	return (
- <>
-		<Description />
-  
-		<Options
- updateFeedback={updateFeedback}
- resetFeedback={resetFeedback}
-	totalFeedback={totalFeedback}
-		/>
-		{totalFeedback ? (
- <Feedback
-			feedback={feedbackCount}
-			totalFeedback={totalFeedback}
-			positiveFeedback={positiveFeedback}
- />
-		) : ( <Notification />
-		)}
-	</>
-	);
+  const { good, neutral, bad } = values;
+  const totalFeedback = bad + good + neutral;
+  const positiveFeedback = Math.round((good / totalFeedback) * 100) 
+
+  const resetFeedback = () => {
+    setValues({
+      good: 0,
+      neutral: 0,
+      bad:0
+    })
   }
+
+  return <>
+    <Description></Description>
+    <Options feedback={onLeaveFeedback} totalFeedback={totalFeedback} reset={resetFeedback} ></Options>
+    <>{totalFeedback === 0 ? <Notification message={"No feedback yet"} /> : <Feedback values={values} totalFeedback={totalFeedback} positiveFeedback={positiveFeedback } />}</>
+  </>;
+}
+
+
+export default App;
