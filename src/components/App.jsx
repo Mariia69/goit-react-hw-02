@@ -51,7 +51,7 @@ function App() {
 
   return <>
     <Description></Description>
-    <Options feedback={onLeaveFeedback} totalFeedback={totalFeedback} reset={resetFeedback} ></Options>
+    <Options feedback={onLeaveFeedback} totalFeedback={totalFeedback} propsreset={resetFeedback} ></Options>
     <>{totalFeedback === 0 ? <Notification message={"No feedback yet"} /> : <Feedback values={values} totalFeedback={totalFeedback} positiveFeedback={positiveFeedback } />}</>
   </>;
 }
